@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>getter package &mdash; Google Search SEO Scraper 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="extractor package" href="extractor.html" />
+    <link rel="prev" title="main module" href="main.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Google Search SEO Scraper
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">src</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">getter package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-getter.contentGetter">getter.contentGetter module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#getter.contentGetter.ContentGetter"><code class="docutils literal notranslate"><span class="pre">ContentGetter</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="extractor.html">extractor package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="framer.html">framer package</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Google Search SEO Scraper</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">src</a></li>
+      <li class="breadcrumb-item active">getter package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/getter.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="getter-package">
+<h1>getter package<a class="headerlink" href="#getter-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-getter.contentGetter">
+<span id="getter-contentgetter-module"></span><h2>getter.contentGetter module<a class="headerlink" href="#module-getter.contentGetter" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="getter.contentGetter.ContentGetter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">getter.contentGetter.</span></span><span class="sig-name descname"><span class="pre">ContentGetter</span></span><a class="reference internal" href="_modules/getter/contentGetter.html#ContentGetter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#getter.contentGetter.ContentGetter" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class responsible for retrieving and managing HTML content from web pages and Google search results.</p>
+<p>The <cite>ContentGetter</cite> class provides methods to fetch HTML content from Google search result pages and individual
+web pages based on a list of URLs. It handles HTTP requests, manages response content, and provides functionality
+to retrieve HTTP headers for debugging and analysis. This class is useful for tasks such as content scraping, 
+data collection, and preliminary data analysis of web resources.</p>
+<dl class="simple">
+<dt>Attributes:</dt><dd><p>search_results (str): The HTML content of the Google search results page retrieved during search queries.
+page_results (List[Dict[str, str]]): A list of dictionaries where each dictionary maps a URL to its corresponding HTML content.</p>
+</dd>
+<dt>Methods:</dt><dd><dl class="simple">
+<dt>_get_search_content(search_term: str) -&gt; str:</dt><dd><p>Fetches the HTML content of Google search results for the specified search term. Constructs a Google search URL, 
+sends an HTTP GET request, and retrieves the HTML content. Stores the content in the <cite>search_results</cite> attribute 
+and returns it. Handles request errors by printing an error message and returning an empty string.</p>
+</dd>
+<dt>_get_pages_content(page_urls: List[str]) -&gt; List[Dict[str, str]]:</dt><dd><p>Retrieves the HTML content for a list of web page URLs. Sends HTTP GET requests to each URL and stores the HTML 
+content in a list of dictionaries, with each dictionary mapping a URL to its HTML content. Includes a delay between 
+requests to avoid overwhelming the server. Handles request errors by printing an error message and storing an empty 
+dictionary for the failed URL.</p>
+</dd>
+<dt>_fetch_headers(urls: List[str]) -&gt; None:</dt><dd><p>Fetches and prints the HTTP headers for a list of URLs. Sends HTTP GET requests to each URL and prints the headers 
+received in the responses. Provides a clear separation in the output to distinguish headers from different URLs. 
+Handles request errors by printing an error message.</p>
+</dd>
+</dl>
+</dd>
+<dt>Raises:</dt><dd><p>requests.RequestException: This exception is raised if any error occurs during HTTP requests for fetching search 
+results, page content, or headers.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="main.html" class="btn btn-neutral float-left" title="main module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="extractor.html" class="btn btn-neutral float-right" title="extractor package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Mitch Edmunds.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

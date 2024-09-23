@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>framer.dataFramer &mdash; Google Search SEO Scraper 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Google Search SEO Scraper
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Google Search SEO Scraper</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">framer.dataFramer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for framer.dataFramer</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">urllib.parse</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">nltk</span>
+<span class="kn">from</span> <span class="nn">nltk.util</span> <span class="kn">import</span> <span class="n">ngrams</span>
+<span class="kn">from</span> <span class="nn">nltk.tokenize</span> <span class="kn">import</span> <span class="n">word_tokenize</span>
+
+<span class="c1"># Ensure NLTK data is available</span>
+<span class="n">nltk</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="s1">&#39;punkt&#39;</span><span class="p">)</span>
+<span class="n">nltk</span><span class="o">.</span><span class="n">download</span><span class="p">(</span><span class="s1">&#39;punkt_tab&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="DataFramer">
+<a class="viewcode-back" href="../../framer.html#framer.dataFramer.DataFramer">[docs]</a>
+<span class="k">class</span> <span class="nc">DataFramer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class responsible for handling and processing data frames related to HTML elements, text analysis, and keyword extraction.</span>
+
+<span class="sd">    The `DataFramer` class provides methods to clean URLs for file naming, create styled DataFrames from various types of data,</span>
+<span class="sd">    and save these DataFrames to HTML files. It also includes functionality for tokenizing text, generating n-grams, and analyzing</span>
+<span class="sd">    keyword frequencies. This class is useful for tasks such as data analysis, text processing, and generating HTML reports from</span>
+<span class="sd">    structured data.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        None</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">        _clean_url_for_filename(url: Optional[str]) -&gt; str:</span>
+<span class="sd">            Cleans a URL to create a valid file name by removing &#39;http://&#39;, &#39;www.&#39;, and domain extensions, and replacing periods</span>
+<span class="sd">            with hyphens. If the URL is None, returns a default name.</span>
+
+<span class="sd">        _create_element_details_df(data: List[Dict[str, Any]], url: Optional[str] = None) -&gt; None:</span>
+<span class="sd">            Creates and styles a DataFrame from the provided extracted HTML element data and saves it as an HTML file. The DataFrame</span>
+<span class="sd">            includes columns from the dictionaries in the data list, and the resulting HTML file is saved with a name derived from</span>
+<span class="sd">            the URL. If the URL is None, a default filename is used.</span>
+
+<span class="sd">        _generate_ngrams(tokens: List[str], n: int) -&gt; List[str]:</span>
+<span class="sd">            Generates n-grams from a list of tokens. An n-gram is a contiguous sequence of n items from the tokens list.</span>
+
+<span class="sd">        _create_word_freq_df(data: List[Dict[str, Any]], url: Optional[str] = None) -&gt; None:</span>
+<span class="sd">            Counts the frequency of unique n-grams (unigrams, bigrams, trigrams) found in &#39;TEXT&#39; and &#39;ALT&#39; values of the provided</span>
+<span class="sd">            data and saves the counts to an HTML file. The file name is based on the URL if provided; otherwise, a default name is used.</span>
+
+<span class="sd">        _create_keywords_df(keywords: Dict[str, List[Tuple[str, float]]], url: Optional[str] = None) -&gt; None:</span>
+<span class="sd">            Creates and saves a styled DataFrame that lists keywords and their scores for each tag type. The DataFrame is saved as</span>
+<span class="sd">            an HTML file with a name derived from the URL. If the URL is None, a default filename is used.</span>
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the DataFramer instance. This constructor does not perform any specific initialization</span>
+<span class="sd">        beyond the default behavior.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_clean_url_for_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Cleans a URL to create a valid file name by removing &#39;http://&#39;, &#39;www.&#39;, and domain extensions,</span>
+<span class="sd">        and replacing periods with hyphens. If the URL is None, returns a default name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            url (Optional[str]): The URL to be cleaned. If None, a default name is returned.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: A cleaned version of the URL suitable for file naming, or a default name if the URL is None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;google_results&quot;</span>
+        
+        <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">netloc</span> <span class="o">=</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">netloc</span>
+        <span class="n">netloc</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^https?://&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">netloc</span><span class="p">)</span>
+        <span class="n">netloc</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^www\.&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">netloc</span><span class="p">)</span>
+        <span class="n">netloc</span> <span class="o">=</span> <span class="n">netloc</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cleaned_filename</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\.&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">netloc</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cleaned_filename</span><span class="p">:</span>
+            <span class="n">cleaned_filename</span> <span class="o">=</span> <span class="s2">&quot;default_filename&quot;</span>
+        
+        <span class="k">return</span> <span class="n">cleaned_filename</span>
+
+    <span class="k">def</span> <span class="nf">_create_element_details_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates and styles a DataFrame from the provided extracted HTML element data and saves it as an HTML file.</span>
+<span class="sd">        The DataFrame includes columns from the dictionaries in the data list, and the resulting HTML file is</span>
+<span class="sd">        saved with a name derived from the URL.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (List[Dict[str, Any]]): A list of dictionaries where each dictionary represents an HTML element.</span>
+<span class="sd">            url (Optional[str]): The URL associated with the data. If None, a default filename is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        
+        <span class="n">styled_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">set_table_styles</span><span class="p">([</span>
+            <span class="p">{</span><span class="s1">&#39;selector&#39;</span><span class="p">:</span> <span class="s1">&#39;th&#39;</span><span class="p">,</span> <span class="s1">&#39;props&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s1">&#39;background-color&#39;</span><span class="p">,</span> <span class="s1">&#39;#4CAF50&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;font-weight&#39;</span><span class="p">,</span> <span class="s1">&#39;bold&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;text-align&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;border&#39;</span><span class="p">,</span> <span class="s1">&#39;1px solid black&#39;</span><span class="p">)]},</span>
+            <span class="p">{</span><span class="s1">&#39;selector&#39;</span><span class="p">:</span> <span class="s1">&#39;td&#39;</span><span class="p">,</span> <span class="s1">&#39;props&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s1">&#39;text-align&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;border&#39;</span><span class="p">,</span> <span class="s1">&#39;1px solid black&#39;</span><span class="p">)]},</span>
+            <span class="p">{</span><span class="s1">&#39;selector&#39;</span><span class="p">:</span> <span class="s1">&#39;caption&#39;</span><span class="p">,</span> <span class="s1">&#39;props&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s1">&#39;caption-side&#39;</span><span class="p">,</span> <span class="s1">&#39;top&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;font-size&#39;</span><span class="p">,</span> <span class="s1">&#39;1.5em&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;font-weight&#39;</span><span class="p">,</span> <span class="s1">&#39;bold&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;#333&#39;</span><span class="p">)]},</span>
+        <span class="p">])</span><span class="o">.</span><span class="n">set_caption</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HTML Element details for: </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">cleaned_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clean_url_for_filename</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cleaned_url</span><span class="si">}</span><span class="s2">_element_details_df.html&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="s2">&quot;NAME-MISSING_element_details_df.html&quot;</span>
+        
+        <span class="n">output_folder</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;../dataframes/</span><span class="si">{</span><span class="n">cleaned_url</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">)</span>
+        
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">styled_df</span><span class="o">.</span><span class="n">to_html</span><span class="p">())</span>
+        
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved DataFrame for element details as &#39;</span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_tokenize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tokenizes the input text into individual words.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            text (str): The text to be tokenized.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: A list of tokens (words) obtained from the text.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">word_tokenize</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">_generate_ngrams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates n-grams from a list of tokens. An n-gram is a contiguous sequence of n items from the tokens list.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tokens (List[str]): The list of tokens to generate n-grams from.</span>
+<span class="sd">            n (int): The length of n-grams to generate (e.g., 1 for unigrams, 2 for bigrams, etc.).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: A list of n-grams represented as strings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ngram</span><span class="p">)</span> <span class="k">for</span> <span class="n">ngram</span> <span class="ow">in</span> <span class="n">ngrams</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">n</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">_create_word_freq_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Counts the frequency of unique n-grams (unigrams, bigrams, trigrams) found in &#39;TEXT&#39; and &#39;ALT&#39; values of</span>
+<span class="sd">        the provided data and saves the counts to an HTML file. The file name is based on the URL if provided.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (List[Dict[str, Any]]): A list of dictionaries where each dictionary contains &#39;TEXT&#39; or &#39;ALT&#39; values.</span>
+<span class="sd">            url (Optional[str]): The URL associated with the data. If None, a default filename is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">one_grams</span><span class="p">,</span> <span class="n">two_grams</span><span class="p">,</span> <span class="n">three_grams</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;TEXT&#39;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+                <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenize</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;TEXT&#39;</span><span class="p">])</span>
+                <span class="n">one_grams</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_generate_ngrams</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">two_grams</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_generate_ngrams</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+                <span class="n">three_grams</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_generate_ngrams</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="k">if</span> <span class="s1">&#39;ALT&#39;</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+                <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tokenize</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;ALT&#39;</span><span class="p">])</span>
+                <span class="n">one_grams</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_generate_ngrams</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">two_grams</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_generate_ngrams</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+                <span class="n">three_grams</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_generate_ngrams</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="n">one_gram_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">one_grams</span><span class="p">)</span>
+        <span class="n">two_gram_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">two_grams</span><span class="p">)</span>
+        <span class="n">three_gram_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">three_grams</span><span class="p">)</span>
+
+        <span class="n">df_one_grams</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">one_gram_counts</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;1 Word&#39;</span><span class="p">,</span> <span class="s1">&#39;Count 1&#39;</span><span class="p">])</span>
+        <span class="n">df_two_grams</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">two_gram_counts</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;2 Word&#39;</span><span class="p">,</span> <span class="s1">&#39;Count 2&#39;</span><span class="p">])</span>
+        <span class="n">df_three_grams</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">three_gram_counts</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;3 Word&#39;</span><span class="p">,</span> <span class="s1">&#39;Count 3&#39;</span><span class="p">])</span>
+
+        <span class="n">df_combined</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">df_one_grams</span><span class="p">[[</span><span class="s1">&#39;1 Word&#39;</span><span class="p">,</span> <span class="s1">&#39;Count 1&#39;</span><span class="p">]],</span>
+            <span class="n">df_two_grams</span><span class="p">[[</span><span class="s1">&#39;2 Word&#39;</span><span class="p">,</span> <span class="s1">&#39;Count 2&#39;</span><span class="p">]],</span>
+            <span class="n">how</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">,</span>
+            <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">df_combined</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">df_combined</span><span class="p">,</span>
+            <span class="n">df_three_grams</span><span class="p">[[</span><span class="s1">&#39;3 Word&#39;</span><span class="p">,</span> <span class="s1">&#39;Count 3&#39;</span><span class="p">]],</span>
+            <span class="n">how</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">,</span>
+            <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="n">df_combined</span> <span class="o">=</span> <span class="n">df_combined</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+        <span class="n">df_combined</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">styled_df</span> <span class="o">=</span> <span class="n">df_combined</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">set_table_styles</span><span class="p">([</span>
+            <span class="p">{</span><span class="s1">&#39;selector&#39;</span><span class="p">:</span> <span class="s1">&#39;th&#39;</span><span class="p">,</span> <span class="s1">&#39;props&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s1">&#39;background-color&#39;</span><span class="p">,</span> <span class="s1">&#39;#4CAF50&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;font-weight&#39;</span><span class="p">,</span> <span class="s1">&#39;bold&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;text-align&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;border&#39;</span><span class="p">,</span> <span class="s1">&#39;1px solid black&#39;</span><span class="p">)]},</span>
+            <span class="p">{</span><span class="s1">&#39;selector&#39;</span><span class="p">:</span> <span class="s1">&#39;td&#39;</span><span class="p">,</span> <span class="s1">&#39;props&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s1">&#39;text-align&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;border&#39;</span><span class="p">,</span> <span class="s1">&#39;1px solid black&#39;</span><span class="p">)]},</span>
+            <span class="p">{</span><span class="s1">&#39;selector&#39;</span><span class="p">:</span> <span class="s1">&#39;caption&#39;</span><span class="p">,</span> <span class="s1">&#39;props&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s1">&#39;caption-side&#39;</span><span class="p">,</span> <span class="s1">&#39;top&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;font-size&#39;</span><span class="p">,</span> <span class="s1">&#39;1.5em&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;font-weight&#39;</span><span class="p">,</span> <span class="s1">&#39;bold&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;#333&#39;</span><span class="p">)]},</span>
+        <span class="p">])</span><span class="o">.</span><span class="n">set_caption</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;N-gram Frequency Count for: </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">cleaned_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clean_url_for_filename</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cleaned_url</span><span class="si">}</span><span class="s2">_ngram_counts.html&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="s2">&quot;MISSINGNAME_ngram_counts.html&quot;</span>
+
+        <span class="n">output_folder</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;../dataframes/</span><span class="si">{</span><span class="n">cleaned_url</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">styled_df</span><span class="o">.</span><span class="n">to_html</span><span class="p">())</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved n-gram counts to &#39;</span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_create_keywords_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keywords</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]],</span> <span class="n">url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates and saves a styled DataFrame that lists keywords and their scores for each tag type. The DataFrame</span>
+<span class="sd">        is saved as an HTML file with a name derived from the URL.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            keywords (Dict[str, List[Tuple[str, float]]]): A dictionary where the key is the tag type and the value is</span>
+<span class="sd">            a list of tuples containing keywords and their associated scores.</span>
+<span class="sd">            url (Optional[str]): The URL associated with the data. If None, a default filename is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">type_list</span><span class="p">,</span> <span class="n">keyword_list</span><span class="p">,</span> <span class="n">score_list</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">item_type</span><span class="p">,</span> <span class="n">kws</span> <span class="ow">in</span> <span class="n">keywords</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">kw</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">kws</span><span class="p">:</span>
+                <span class="n">type_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item_type</span><span class="p">)</span>
+                <span class="n">keyword_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kw</span><span class="p">)</span>
+                <span class="n">score_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+        
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+            <span class="s1">&#39;Type&#39;</span><span class="p">:</span> <span class="n">type_list</span><span class="p">,</span>
+            <span class="s1">&#39;Keyword&#39;</span><span class="p">:</span> <span class="n">keyword_list</span><span class="p">,</span>
+            <span class="s1">&#39;Score&#39;</span><span class="p">:</span> <span class="n">score_list</span>
+        <span class="p">})</span>
+
+        <span class="n">styled_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">set_table_styles</span><span class="p">([</span>
+            <span class="p">{</span><span class="s1">&#39;selector&#39;</span><span class="p">:</span> <span class="s1">&#39;th&#39;</span><span class="p">,</span> <span class="s1">&#39;props&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s1">&#39;background-color&#39;</span><span class="p">,</span> <span class="s1">&#39;#4CAF50&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;white&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;font-weight&#39;</span><span class="p">,</span> <span class="s1">&#39;bold&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;text-align&#39;</span><span class="p">,</span> <span class="s1">&#39;center&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;border&#39;</span><span class="p">,</span> <span class="s1">&#39;1px solid black&#39;</span><span class="p">)]},</span>
+            <span class="p">{</span><span class="s1">&#39;selector&#39;</span><span class="p">:</span> <span class="s1">&#39;td&#39;</span><span class="p">,</span> <span class="s1">&#39;props&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s1">&#39;text-align&#39;</span><span class="p">,</span> <span class="s1">&#39;left&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;border&#39;</span><span class="p">,</span> <span class="s1">&#39;1px solid black&#39;</span><span class="p">)]},</span>
+            <span class="p">{</span><span class="s1">&#39;selector&#39;</span><span class="p">:</span> <span class="s1">&#39;caption&#39;</span><span class="p">,</span> <span class="s1">&#39;props&#39;</span><span class="p">:</span> <span class="p">[(</span><span class="s1">&#39;caption-side&#39;</span><span class="p">,</span> <span class="s1">&#39;top&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;font-size&#39;</span><span class="p">,</span> <span class="s1">&#39;1.5em&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;font-weight&#39;</span><span class="p">,</span> <span class="s1">&#39;bold&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;color&#39;</span><span class="p">,</span> <span class="s1">&#39;#333&#39;</span><span class="p">)]},</span>
+        <span class="p">])</span><span class="o">.</span><span class="n">set_caption</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Keywords for: </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">cleaned_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_clean_url_for_filename</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cleaned_url</span><span class="si">}</span><span class="s2">_keywords.html&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output_filename</span> <span class="o">=</span> <span class="s2">&quot;MISSINGNAME_keywords.html&quot;</span>
+
+        <span class="n">output_folder</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;../dataframes/</span><span class="si">{</span><span class="n">cleaned_url</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">output_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_folder</span><span class="p">,</span> <span class="n">output_filename</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">styled_df</span><span class="o">.</span><span class="n">to_html</span><span class="p">())</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved keyword DataFrame to &#39;</span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Mitch Edmunds.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

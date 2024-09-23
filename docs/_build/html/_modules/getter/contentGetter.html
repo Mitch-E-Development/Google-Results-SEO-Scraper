@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>getter.contentGetter &mdash; Google Search SEO Scraper 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Google Search SEO Scraper
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Google Search SEO Scraper</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">getter.contentGetter</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for getter.contentGetter</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<div class="viewcode-block" id="ContentGetter">
+<a class="viewcode-back" href="../../getter.html#getter.contentGetter.ContentGetter">[docs]</a>
+<span class="k">class</span> <span class="nc">ContentGetter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class responsible for retrieving and managing HTML content from web pages and Google search results.</span>
+
+<span class="sd">    The `ContentGetter` class provides methods to fetch HTML content from Google search result pages and individual</span>
+<span class="sd">    web pages based on a list of URLs. It handles HTTP requests, manages response content, and provides functionality</span>
+<span class="sd">    to retrieve HTTP headers for debugging and analysis. This class is useful for tasks such as content scraping, </span>
+<span class="sd">    data collection, and preliminary data analysis of web resources.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        search_results (str): The HTML content of the Google search results page retrieved during search queries.</span>
+<span class="sd">        page_results (List[Dict[str, str]]): A list of dictionaries where each dictionary maps a URL to its corresponding HTML content.</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">        _get_search_content(search_term: str) -&gt; str:</span>
+<span class="sd">            Fetches the HTML content of Google search results for the specified search term. Constructs a Google search URL, </span>
+<span class="sd">            sends an HTTP GET request, and retrieves the HTML content. Stores the content in the `search_results` attribute </span>
+<span class="sd">            and returns it. Handles request errors by printing an error message and returning an empty string.</span>
+
+<span class="sd">        _get_pages_content(page_urls: List[str]) -&gt; List[Dict[str, str]]:</span>
+<span class="sd">            Retrieves the HTML content for a list of web page URLs. Sends HTTP GET requests to each URL and stores the HTML </span>
+<span class="sd">            content in a list of dictionaries, with each dictionary mapping a URL to its HTML content. Includes a delay between </span>
+<span class="sd">            requests to avoid overwhelming the server. Handles request errors by printing an error message and storing an empty </span>
+<span class="sd">            dictionary for the failed URL.</span>
+
+<span class="sd">        _fetch_headers(urls: List[str]) -&gt; None:</span>
+<span class="sd">            Fetches and prints the HTTP headers for a list of URLs. Sends HTTP GET requests to each URL and prints the headers </span>
+<span class="sd">            received in the responses. Provides a clear separation in the output to distinguish headers from different URLs. </span>
+<span class="sd">            Handles request errors by printing an error message.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        requests.RequestException: This exception is raised if any error occurs during HTTP requests for fetching search </span>
+<span class="sd">        results, page content, or headers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the ContentGetter instance.</span>
+
+<span class="sd">        This constructor initializes the attributes:</span>
+<span class="sd">        - `search_results` as an empty string.</span>
+<span class="sd">        - `page_results` as an empty list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">page_results</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">_get_search_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_term</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fetches the HTML content of Google search results for a specified search term.</span>
+
+<span class="sd">        This method constructs a Google search URL with the provided search term, sends an HTTP GET request to the URL,</span>
+<span class="sd">        and retrieves the HTML content of the search results page. If the request is successful, the HTML content is stored</span>
+<span class="sd">        and returned. If there is an error during the request, an empty string is returned.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            search_term (str): The search term to use in the Google search query.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The HTML content of the search results page. Returns an empty string if an error occurs during the request.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            requests.RequestException: If an error occurs while making the HTTP request.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">search_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://www.google.com/search?q=</span><span class="si">{</span><span class="n">search_term</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36&quot;</span>
+            <span class="p">}</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">search_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+            <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span>  <span class="c1"># Store HTML content</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_results</span>  <span class="c1"># Return the HTML content</span>
+            
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error fetching search results: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_get_pages_content</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page_urls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fetches the HTML content of multiple web pages based on their URLs.</span>
+
+<span class="sd">        This method iterates over the provided list of URLs, sends HTTP GET requests to each URL, and retrieves the HTML</span>
+<span class="sd">        content of each page. The results are stored in a list of dictionaries where each dictionary maps a URL to its HTML content.</span>
+<span class="sd">        To prevent overwhelming the server, there is a delay between requests. If a request fails, an empty dictionary is used</span>
+<span class="sd">        for that URL.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            page_urls (List[str]): A list of URLs for which to fetch the HTML content.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Dict[str, str]]: A list of dictionaries where each dictionary maps a URL to its HTML content.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            requests.RequestException: If an error occurs while making the HTTP request for any URL.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">page_contents</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">page_urls</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+                <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+
+                <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="n">url</span><span class="p">:</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">}</span>
+                <span class="n">page_contents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+                
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>  <span class="c1"># Delay to avoid sending too many requests in a short period</span>
+            
+            <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error fetching page </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="n">url</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">}</span>
+                <span class="n">page_contents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">page_results</span> <span class="o">=</span> <span class="n">page_contents</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">page_results</span>
+
+    <span class="k">def</span> <span class="nf">_fetch_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">urls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fetches and prints the HTTP headers of the given URLs.</span>
+
+<span class="sd">        This method sends HTTP GET requests to each URL in the provided list and prints the HTTP headers received in</span>
+<span class="sd">        the responses. The headers for each URL are printed with a clear separation to make them easy to distinguish.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            urls (List[str]): A list of URLs for which to fetch and print HTTP headers.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            None: This method does not return any value. It prints the headers directly to the console.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            requests.RequestException: If an error occurs while making the HTTP request for any URL.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">url</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\n\n</span><span class="s2">Headers for </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">70</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">header</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">header</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">70</span><span class="p">)</span>
+            
+            <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error fetching headers from </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Mitch Edmunds.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

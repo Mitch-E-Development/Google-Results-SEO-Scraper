@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>extractor.dataExtractor &mdash; Google Search SEO Scraper 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Google Search SEO Scraper
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Google Search SEO Scraper</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">extractor.dataExtractor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for extractor.dataExtractor</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">yake</span> <span class="kn">import</span> <span class="n">KeywordExtractor</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urljoin</span><span class="p">,</span> <span class="n">urlparse</span><span class="p">,</span> <span class="n">urlunparse</span>
+
+<div class="viewcode-block" id="DataExtractor">
+<a class="viewcode-back" href="../../extractor.html#extractor.dataExtractor.DataExtractor">[docs]</a>
+<span class="k">class</span> <span class="nc">DataExtractor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class responsible for extracting and analyzing various types of data from HTML content.</span>
+
+<span class="sd">    The `DataExtractor` class provides methods to parse HTML documents and extract SEO-relevant information, </span>
+<span class="sd">    metadata, URLs, keywords, and other content-based insights. It supports the extraction of various data elements </span>
+<span class="sd">    such as text content from HTML tags, alt attributes from images, and structured metadata. This class is useful </span>
+<span class="sd">    for tasks related to SEO analysis, content scraping, and data mining from web pages.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        search_data (Dict): A dictionary to store search-related data collected during extraction.</span>
+<span class="sd">        page_data (List): A list to store data specific to individual pages, such as meta information and extracted content.</span>
+
+<span class="sd">    Methods:</span>
+<span class="sd">        _extract_page_elements(search_results: str) -&gt; List[Dict[str, Any]]:</span>
+<span class="sd">            Extracts SEO-relevant data from the provided HTML content by parsing various HTML tags.</span>
+<span class="sd">        </span>
+<span class="sd">        _extract_data_from_element(soup: BeautifulSoup, tag: str) -&gt; List[Dict[str, Any]]:</span>
+<span class="sd">            Extracts data from specific HTML tags within the provided BeautifulSoup object, including class names, </span>
+<span class="sd">            text content, and attributes.</span>
+<span class="sd">        </span>
+<span class="sd">        _extract_alt_text_data(tag: str, tag_classes_str: str, id: str, alt_text: str, text: str) -&gt; Dict[str, Any]:</span>
+<span class="sd">            Extracts and formats data specifically from &#39;img&#39; tags, including alt text.</span>
+<span class="sd">        </span>
+<span class="sd">        _extract_text_data(tag: str, tag_classes_str: str, id: str, alt_text: str, text: str) -&gt; Dict[str, Any]:</span>
+<span class="sd">            Extracts and formats data from HTML tags other than &#39;img&#39;, focusing on text content.</span>
+<span class="sd">        </span>
+<span class="sd">        _extract_questions_from_elements(search_elements: List[Dict[str, Any]]) -&gt; Dict[str, List[str]]:</span>
+<span class="sd">            Identifies and extracts unique questions from the &#39;TEXT&#39; and &#39;ALT&#39; fields of HTML elements.</span>
+<span class="sd">        </span>
+<span class="sd">        _extract_related_search_terms(search_elements: List[Dict[str, Any]]) -&gt; Dict[str, List[str]]:</span>
+<span class="sd">            Extracts potential related search terms from elements with specific class names.</span>
+<span class="sd">        </span>
+<span class="sd">        _extract_people_also_asked(search_elements: List[Dict[str, Any]]) -&gt; Dict[str, List[str]]:</span>
+<span class="sd">            Extracts questions from the &#39;People Also Asked&#39; section of search results based on specific class names.</span>
+<span class="sd">        </span>
+<span class="sd">        _extract_and_format_urls(search_data: str) -&gt; List[str]:</span>
+<span class="sd">            Extracts, normalizes, and formats URLs from the provided HTML content.</span>
+<span class="sd">        </span>
+<span class="sd">        _extract_href_urls(search_data: str) -&gt; Set[str]:</span>
+<span class="sd">            Extracts unique absolute URLs from the &#39;href&#39; attributes of &lt;a&gt; tags in the HTML content.</span>
+<span class="sd">        </span>
+<span class="sd">        _extract_page_meta(page_content: str) -&gt; List[Dict[str, Any]]:</span>
+<span class="sd">            Extracts metadata information such as title and description from the provided HTML content.</span>
+<span class="sd">        </span>
+<span class="sd">        _extract_keywords_by_tag(search_data: List[Dict[str, Any]]) -&gt; Dict[str, List[Dict[str, float]]]:</span>
+<span class="sd">            Extracts keywords from different HTML tag types using the YAKE keyword extraction algorithm.</span>
+<span class="sd">        </span>
+<span class="sd">        _extract_keywords_by_component(search_data: List[Dict[str, Any]]) -&gt; Dict[str, List[Tuple[str, float]]]:</span>
+<span class="sd">            Extracts and organizes keywords by different page components using YAKE, analyzing text from various components.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes a new instance of the DataExtractor class.</span>
+
+<span class="sd">        This class is responsible for extracting various types of data from HTML content,</span>
+<span class="sd">        including SEO-related information, metadata, URLs, and keywords.</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            search_data (Dict): A dictionary to store search-related data collected during extraction.</span>
+<span class="sd">            page_data (List): A list to store data specific to individual pages, such as meta information and extracted content.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">search_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">page_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">_extract_page_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_results</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts SEO-relevant data from the provided HTML content.</span>
+
+<span class="sd">        This method parses the given HTML content to extract text and attributes from various HTML tags. </span>
+<span class="sd">        The tags are filtered based on predefined criteria to collect relevant data including text and alt attributes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            search_results (str): A string containing the HTML content to be parsed.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Dict[str, Any]]: A list of dictionaries where each dictionary represents an HTML tag </span>
+<span class="sd">            and includes its type, class names, id, alt attribute (for &#39;img&#39; tags), and text content.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">search_results</span><span class="p">,</span> <span class="s2">&quot;html.parser&quot;</span><span class="p">)</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;meta&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;h1&#39;</span><span class="p">,</span> <span class="s1">&#39;h2&#39;</span><span class="p">,</span> <span class="s1">&#39;h3&#39;</span><span class="p">,</span> <span class="s1">&#39;h4&#39;</span><span class="p">,</span> <span class="s1">&#39;h5&#39;</span><span class="p">,</span> <span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;span&#39;</span><span class="p">,</span> <span class="s1">&#39;div&#39;</span><span class="p">,</span> <span class="s1">&#39;img&#39;</span><span class="p">,</span> <span class="s1">&#39;head&#39;</span>
+        <span class="p">]</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_extract_data_from_element</span><span class="p">(</span><span class="n">soup</span><span class="p">,</span> <span class="n">tag</span><span class="p">))</span> 
+
+        <span class="k">return</span> <span class="n">results</span>
+    
+    <span class="k">def</span> <span class="nf">_extract_data_from_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">soup</span><span class="p">:</span> <span class="n">BeautifulSoup</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts data from specific HTML tags within the provided BeautifulSoup object.</span>
+
+<span class="sd">        This method collects information from all elements of a given tag type, including class names, </span>
+<span class="sd">        text content, and attributes. Special handling is applied for &#39;img&#39; tags to include the alt attribute.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            soup (BeautifulSoup): A BeautifulSoup object containing the parsed HTML content.</span>
+<span class="sd">            tag (str): The type of HTML tag to extract data from (e.g., &#39;a&#39;, &#39;img&#39;, &#39;p&#39;).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Dict[str, Any]]: A list of dictionaries containing the extracted data for each tag, </span>
+<span class="sd">            including &#39;TYPE&#39;, &#39;CLASS&#39;, &#39;ID&#39;, &#39;ALT&#39; (for &#39;img&#39; tags), and &#39;TEXT&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="n">tag_classes_str</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class&quot;</span><span class="p">,</span> <span class="p">[]))</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get_text</span><span class="p">(</span><span class="n">strip</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">alt_text</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;alt&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="nb">id</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">tag_classes_str</span> <span class="ow">or</span> <span class="nb">id</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s1">&#39;img&#39;</span><span class="p">:</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_extract_alt_text_data</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">tag_classes_str</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">alt_text</span><span class="p">,</span> <span class="n">text</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_extract_text_data</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">tag_classes_str</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">alt_text</span><span class="p">,</span> <span class="n">text</span><span class="p">))</span>
+    
+        <span class="k">return</span> <span class="n">results</span>
+
+    <span class="k">def</span> <span class="nf">_extract_alt_text_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag_classes_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">alt_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts and formats data specifically from &#39;img&#39; tags.</span>
+
+<span class="sd">        This method handles the extraction of information from &#39;img&#39; tags, including alt text, </span>
+<span class="sd">        which is relevant for SEO purposes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tag (str): The HTML tag (&#39;img&#39;).</span>
+<span class="sd">            tag_classes_str (str): The class attribute of the &#39;img&#39; tag.</span>
+<span class="sd">            id (str): The id attribute of the &#39;img&#39; tag.</span>
+<span class="sd">            alt_text (str): The alt attribute of the &#39;img&#39; tag.</span>
+<span class="sd">            text (str): The text content of the &#39;img&#39; tag (usually empty).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Any]: A dictionary containing the extracted data, with keys &#39;TYPE&#39;, &#39;CLASS&#39;, &#39;ID&#39;, &#39;ALT&#39;, and &#39;TEXT&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">alt_text</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;TYPE&quot;</span><span class="p">:</span> <span class="n">tag</span><span class="p">,</span> <span class="s2">&quot;CLASS&quot;</span><span class="p">:</span> <span class="n">tag_classes_str</span><span class="p">,</span> <span class="s2">&quot;ID&quot;</span><span class="p">:</span> <span class="nb">id</span><span class="p">,</span> <span class="s2">&quot;ALT&quot;</span><span class="p">:</span> <span class="n">alt_text</span><span class="p">,</span> <span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="n">text</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;TYPE&quot;</span><span class="p">:</span> <span class="n">tag</span><span class="p">,</span> <span class="s2">&quot;CLASS&quot;</span><span class="p">:</span> <span class="n">tag_classes_str</span><span class="p">,</span> <span class="s2">&quot;ID&quot;</span><span class="p">:</span> <span class="nb">id</span><span class="p">,</span> <span class="s2">&quot;ALT&quot;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="n">text</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_extract_text_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag_classes_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">alt_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts and formats data from HTML tags other than &#39;img&#39;.</span>
+
+<span class="sd">        This method is used for extracting text content from various HTML tags, handling text attributes and optional attributes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tag (str): The HTML tag type (e.g., &#39;p&#39;, &#39;a&#39;, &#39;h1&#39;).</span>
+<span class="sd">            tag_classes_str (str): The class attribute of the tag.</span>
+<span class="sd">            id (str): The id attribute of the tag.</span>
+<span class="sd">            alt_text (str): The alt attribute of the tag (empty for non-&#39;img&#39; tags).</span>
+<span class="sd">            text (str): The text content of the tag.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Any]: A dictionary containing the extracted data, including &#39;TYPE&#39;, &#39;CLASS&#39;, &#39;ID&#39;, &#39;ALT&#39;, and &#39;TEXT&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">text</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;TYPE&quot;</span><span class="p">:</span> <span class="n">tag</span><span class="p">,</span> <span class="s2">&quot;CLASS&quot;</span><span class="p">:</span> <span class="n">tag_classes_str</span><span class="p">,</span> <span class="s2">&quot;ID&quot;</span><span class="p">:</span> <span class="nb">id</span><span class="p">,</span> <span class="s2">&quot;ALT&quot;</span><span class="p">:</span> <span class="n">alt_text</span><span class="p">,</span> <span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="n">text</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;TYPE&quot;</span><span class="p">:</span> <span class="n">tag</span><span class="p">,</span> <span class="s2">&quot;CLASS&quot;</span><span class="p">:</span> <span class="n">tag_classes_str</span><span class="p">,</span> <span class="s2">&quot;ID&quot;</span><span class="p">:</span> <span class="nb">id</span><span class="p">,</span> <span class="s2">&quot;ALT&quot;</span><span class="p">:</span> <span class="n">alt_text</span><span class="p">,</span> <span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_extract_questions_from_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Identifies and extracts unique questions from the &#39;TEXT&#39; and &#39;ALT&#39; fields of HTML elements.</span>
+
+<span class="sd">        This method uses a regex pattern to find and collect questions from the content and alt attributes of HTML elements.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            search_elements (List[Dict[str, Any]]): A list of dictionaries representing HTML elements with various attributes.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, List[str]]: A dictionary with a key &#39;questions&#39; containing a sorted list of unique questions extracted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">question_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\b[A-Z][^.?!]*\?\b&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+        <span class="n">unique_questions</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">search_elements</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;TEXT&#39;</span> <span class="ow">in</span> <span class="n">element</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">element</span><span class="p">[</span><span class="s1">&#39;TEXT&#39;</span><span class="p">]</span>
+                <span class="n">questions</span> <span class="o">=</span> <span class="n">question_pattern</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+                <span class="n">unique_questions</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">questions</span> <span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">()])</span>
+            
+            <span class="k">if</span> <span class="s1">&#39;ALT&#39;</span> <span class="ow">in</span> <span class="n">element</span><span class="p">:</span>
+                <span class="n">alt</span> <span class="o">=</span> <span class="n">element</span><span class="p">[</span><span class="s1">&#39;ALT&#39;</span><span class="p">]</span>
+                <span class="n">questions</span> <span class="o">=</span> <span class="n">question_pattern</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">alt</span><span class="p">)</span>
+                <span class="n">unique_questions</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">questions</span> <span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">strip</span><span class="p">()])</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;questions&#39;</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unique_questions</span><span class="p">)}</span>
+
+    <span class="k">def</span> <span class="nf">_extract_related_search_terms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts potential related search terms from elements with a specific class.</span>
+
+<span class="sd">        This method looks for specific class names associated with related search terms and gathers them into a list.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            search_elements (List[Dict[str, Any]]): A list of dictionaries representing HTML elements.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, List[str]]: A dictionary with a key &#39;related_terms&#39; containing a list of related search terms.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">related_terms</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">search_elements</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;CLASS&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Xe4YD&#39;</span><span class="p">:</span>
+                <span class="n">text_value</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;TEXT&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">text_value</span><span class="p">:</span>
+                    <span class="n">related_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text_value</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;related_terms&#39;</span><span class="p">:</span> <span class="n">related_terms</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_extract_people_also_asked</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_elements</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts questions from the &#39;People Also Asked&#39; section of the search results.</span>
+
+<span class="sd">        This method identifies and collects unique questions from specific classes associated with the &#39;People Also Asked&#39; section.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            search_elements (List[Dict[str, Any]]): A list of dictionaries representing HTML elements.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, List[str]]: A dictionary with a key &#39;people_also_asked&#39; containing a list of unique questions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">people_also_asked</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;people_also_asked&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">search_elements</span><span class="p">:</span>
+            <span class="n">class_name</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;CLASS&#39;</span><span class="p">)</span>
+            <span class="n">text_value</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;TEXT&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">text_value</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">class_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;JCzEY tNxQIb&#39;</span><span class="p">,</span> <span class="s1">&#39;fLtXsc iIWm4b&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">text_value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">people_also_asked</span><span class="p">[</span><span class="s1">&#39;people_also_asked&#39;</span><span class="p">]:</span>
+                        <span class="n">people_also_asked</span><span class="p">[</span><span class="s1">&#39;people_also_asked&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text_value</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">people_also_asked</span>
+
+    <span class="k">def</span> <span class="nf">_extract_and_format_urls</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_data</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts, normalizes, and formats URLs from the provided HTML content.</span>
+
+<span class="sd">        This method parses HTML to locate URLs in specific tags and classes, normalizes them, and returns a list of unique URLs.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            search_data (str): A string containing the HTML content to be parsed.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: A list of unique, normalized URLs extracted from the HTML content.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">search_data</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+        <span class="n">url_classes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ob9lvb&#39;</span><span class="p">,</span> <span class="s1">&#39;sCuL3&#39;</span><span class="p">,</span> <span class="s1">&#39;BNeawe UPmit AP7Wnd lRVwie&#39;</span><span class="p">]</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;div&#39;</span><span class="p">,</span> <span class="s1">&#39;span&#39;</span><span class="p">]</span>
+        <span class="n">urls</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">url_class</span> <span class="ow">in</span> <span class="n">url_classes</span><span class="p">:</span>
+                <span class="n">elements</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="n">url_class</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+                    <span class="n">text</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get_text</span><span class="p">(</span><span class="n">strip</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; › &#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="s1">&#39;https://&#39;</span><span class="p">)):</span>
+                        <span class="n">text</span> <span class="o">=</span> <span class="s1">&#39;http://&#39;</span> <span class="o">+</span> <span class="n">text</span>
+                    
+                    <span class="n">urls</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">urls</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_extract_href_urls</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_data</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts unique absolute URLs from the &#39;href&#39; attributes of &lt;a&gt; tags.</span>
+
+<span class="sd">        This method parses the HTML content to find all anchor tags, extracting and normalizing the URLs from their &#39;href&#39; attributes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            search_data (str): A string containing the HTML content of the page.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Set[str]: A set of unique absolute URLs extracted from the &#39;href&#39; attributes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">search_data</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+        <span class="n">unique_hrefs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">url_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;url=([^&amp;]+)&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">href</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">href</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;href&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">href</span><span class="p">:</span>
+                <span class="n">match</span> <span class="o">=</span> <span class="n">url_pattern</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">href</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                    <span class="n">extracted_url</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">unique_hrefs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">extracted_url</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">href</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="ow">and</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">netloc</span><span class="p">:</span>
+                        <span class="n">unique_hrefs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">href</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">unique_hrefs</span>
+
+    <span class="k">def</span> <span class="nf">_extract_page_meta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page_content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts metadata information such as title and description from the provided HTML content.</span>
+
+<span class="sd">        This method retrieves the title and meta description from the HTML content and returns them in a structured format.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            page_content (str): A string containing the HTML content of the page.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Dict[str, Any]]: A list of dictionaries containing &#39;Title&#39; and &#39;Description&#39; of the page.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">page_meta</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">page_content</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+
+        <span class="n">title</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">string</span> <span class="k">if</span> <span class="n">soup</span><span class="o">.</span><span class="n">title</span> <span class="k">else</span> <span class="s1">&#39;No title&#39;</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;meta&#39;</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;description&#39;</span><span class="p">})</span>
+        <span class="n">description_content</span> <span class="o">=</span> <span class="n">description</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">description</span> <span class="k">else</span> <span class="s1">&#39;No description&#39;</span>
+
+        <span class="n">page_meta</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">&quot;Title&quot;</span><span class="p">:</span> <span class="n">title</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+            <span class="s2">&quot;Description&quot;</span><span class="p">:</span> <span class="n">description_content</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">page_meta</span>
+
+    <span class="k">def</span> <span class="nf">_extract_keywords_by_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts keywords from different HTML tag types using the YAKE keyword extraction algorithm.</span>
+
+<span class="sd">        This method processes the extracted data to identify and score keywords for each tag type (e.g., &#39;title&#39;, &#39;meta&#39;, &#39;img&#39;).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            search_data (List[Dict[str, Any]]): A list of dictionaries containing SEO-relevant data with various tag types.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, List[Dict[str, float]]]: A dictionary where each key is a tag type and each value is a list of dictionaries</span>
+<span class="sd">            with keywords and their relevance scores.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">keywords_by_tag</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">search_data</span><span class="p">:</span>
+            <span class="n">tag_type</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;TYPE&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tag_type</span> <span class="o">==</span> <span class="s1">&#39;img&#39;</span><span class="p">:</span>
+                <span class="n">text_content</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ALT&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">text_content</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;TEXT&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">text_content</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                <span class="k">continue</span>
+
+            <span class="n">extractor</span> <span class="o">=</span> <span class="n">KeywordExtractor</span><span class="p">()</span>
+            <span class="n">keywords</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">extract_keywords</span><span class="p">(</span><span class="n">text_content</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="n">tag_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keywords_by_tag</span><span class="p">:</span>
+                <span class="n">keywords_by_tag</span><span class="p">[</span><span class="n">tag_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">keyword</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">keywords</span><span class="p">:</span>
+                <span class="n">keywords_by_tag</span><span class="p">[</span><span class="n">tag_type</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;keyword&#39;</span><span class="p">:</span> <span class="n">keyword</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">:</span> <span class="n">score</span><span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">keywords_by_tag</span>
+
+    <span class="k">def</span> <span class="nf">_extract_keywords_by_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extracts and organizes keywords by different page components using YAKE.</span>
+
+<span class="sd">        This method analyzes text from various components (e.g., title, meta tags, links, headings) to extract and score keywords.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            search_data (List[Dict[str, Any]]): A list of dictionaries containing SEO-relevant data categorized by different HTML components.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, List[Tuple[str, float]]]: A dictionary where each key represents a page component and each value is a list of tuples</span>
+<span class="sd">            containing keywords and their relevance scores, filtered and sorted by relevance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">extractor</span> <span class="o">=</span> <span class="n">KeywordExtractor</span><span class="p">()</span>
+        <span class="n">categories</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;title_kws&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;meta_kws&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;link_kws&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;heading_kws&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;content_body_kws&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;img_alt_kws&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;questions_kws&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s1">&#39;other_kws&#39;</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">search_data</span><span class="p">:</span>
+            <span class="n">item_type</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;TYPE&quot;</span><span class="p">)</span>
+            <span class="n">text_content</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;TEXT&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">item_type</span> <span class="o">==</span> <span class="s1">&#39;title&#39;</span><span class="p">:</span>
+                <span class="n">categories</span><span class="p">[</span><span class="s1">&#39;title_kws&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text_content</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">item_type</span> <span class="o">==</span> <span class="s1">&#39;meta&#39;</span><span class="p">:</span>
+                <span class="n">categories</span><span class="p">[</span><span class="s1">&#39;meta_kws&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text_content</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">item_type</span> <span class="o">==</span> <span class="s1">&#39;a&#39;</span><span class="p">:</span>
+                <span class="n">categories</span><span class="p">[</span><span class="s1">&#39;link_kws&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text_content</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">item_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;h1&#39;</span><span class="p">,</span> <span class="s1">&#39;h2&#39;</span><span class="p">,</span> <span class="s1">&#39;h3&#39;</span><span class="p">,</span> <span class="s1">&#39;h4&#39;</span><span class="p">,</span> <span class="s1">&#39;h5&#39;</span><span class="p">]:</span>
+                <span class="n">categories</span><span class="p">[</span><span class="s1">&#39;heading_kws&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text_content</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">item_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;div&#39;</span><span class="p">,</span> <span class="s1">&#39;span&#39;</span><span class="p">,</span> <span class="s1">&#39;p&#39;</span><span class="p">,</span> <span class="s1">&#39;section&#39;</span><span class="p">,</span> <span class="s1">&#39;article&#39;</span><span class="p">]:</span>
+                <span class="n">categories</span><span class="p">[</span><span class="s1">&#39;content_body_kws&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text_content</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">item_type</span> <span class="o">==</span> <span class="s1">&#39;img&#39;</span><span class="p">:</span>
+                <span class="n">categories</span><span class="p">[</span><span class="s1">&#39;img_alt_kws&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ALT&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">categories</span><span class="p">[</span><span class="s1">&#39;other_kws&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text_content</span><span class="p">)</span>
+
+        <span class="n">extracted_keywords</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">texts</span> <span class="ow">in</span> <span class="n">categories</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">combined_text</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">texts</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">combined_text</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+                <span class="n">extracted_keywords</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">extract_keywords</span><span class="p">(</span><span class="n">combined_text</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+        <span class="n">relevance_threshold</span> <span class="o">=</span> <span class="mf">0.0009</span>
+        <span class="n">filtered_keywords_by_category</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">category</span><span class="p">,</span> <span class="n">keywords</span> <span class="ow">in</span> <span class="n">extracted_keywords</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">filtered_keywords</span> <span class="o">=</span> <span class="p">[</span><span class="n">kw</span> <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">keywords</span> <span class="k">if</span> <span class="n">kw</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">relevance_threshold</span><span class="p">]</span>
+            <span class="n">sorted_keywords</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">filtered_keywords</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">filtered_keywords_by_category</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="n">sorted_keywords</span>
+
+        <span class="k">return</span> <span class="n">filtered_keywords_by_category</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Mitch Edmunds.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
